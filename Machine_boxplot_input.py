@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+
+import sys
+from collections import defaultdict
+
+if len(sys.argv) < 3:
+        print "py Result-Cln.csv/Result-other.csv CLN/Other"
+        exit(1)
+
+class Stats:
+
+    def __init__(self, sequence):
+        # sequence of numbers we will process
+        # convert all items to floats for numerical processing
+        self.sequence = [float(item) for item in sequence]
+
+    def sum(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            return sum(self.sequence)
+
+    def count(self):
+        return len(self.sequence)
+
+    def min(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            return min(self.sequence)
+    def max(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            return max(self.sequence)
+
+    def avg(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            return sum(self.sequence) / len(self.sequence)
+
+    def median(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            self.sequence.sort()
+            return self.sequence[len(self.sequence) // 2]
+
+    def stdev(self):
+        if len(self.sequence) < 1:
+            return None
+        else:
+            avg = self.avg()
+            sdsq = sum([(i - avg) ** 2 for i in self.sequence])
+            stdev = (sdsq / (len(self.sequence) - 1)) ** .5
+            return stdev
+    def percentile(self, percentile):
+        if len(self.sequence) < 1:
+            value = None
+        elif (percentile >= 100):
+            sys.stderr.write('ERROR: percentile must be < 100.  you supplied: %s\n'% percentile)
+            value = None
+        else:
+            element_idx = int(len(self.sequence) * (percentile / 100.0))
+            self.sequence.sort()
+            value = self.sequence[element_idx]
+        return value
+
+target_lis = []
+def Csv(file1,num):
+	ma_dic = defaultdict(lambda:[])
+        for i in open(file1):
+                i = i.rstrip()
+                if i.startswith('#'):
+                        j = i.split(',')
+                        n = j[int(num)].split('(')[0]
+                        target_lis.append(n)
+                        w = open('Machine_boxplot/%s.csv' % n,"w")
+                else:
+                        j = i.split(',')
+                        ma = j[0].split('_')[0]
+                        if ma in lis2:
+				ma_dic[ma].append(j[int(num)])
+#				num_lis.append(j[int(num)])
+                                new = '\t'.join([j[int(num)],ma])
+                                w.write(new + '\n')
+        w.close()
+	return ma_dic
+lis = ['5','6','7','11','13','14']
+lis1 = ['5','6','7'] 
+lis2 = ['4000','X1','X2','X3','X4','X5','YZ1','YZ2']
+
+dic = {"5":"PF_Bases(G)","6":"Q30_R1(%)","7":"Q30_R2(%)","11":"Clean_Bases(G)","13":"CleanDataPct(%)","14":"Dex_Ratio(%)"}
+
+print "#Machine,zhibiao,Number,Min,Max,Average,Median,Stdev"
+if sys.argv[2] == 'CLN':
+	for i in lis:
+		dic_re = Csv(sys.argv[1],i)
+		for j in sorted(dic_re.keys()):
+			if len(dic_re[j]) == 1:
+				std1 = 0
+				A = Stats(dic_re[j])
+				new = ','.join(map(str,[j,dic[i],A.count(),round(A.min(),2),round(A.max(),2),round(A.avg(),2),round(A.median(),2),std1]))
+				print new
+			else:
+				A = Stats(dic_re[j])
+				new = ','.join(map(str,[j,dic[i],A.count(),round(A.min(),2),round(A.max(),2),round(A.avg(),2),round(A.median(),2),round(A.stdev(),2)]))
+				print new
+else:
+	for i in lis1:
+		dic_re = Csv(sys.argv[1],i)
+		for j in sorted(dic_re.keys()):
+	                A = Stats(dic_re[j])                
+			new = ','.join(map(str,[j,dic[i],A.count(),round(A.min(),2),round(A.max(),2),round(A.avg(),2),round(A.median(),2),round(A.stdev(),2)]))
+                	print new
+
